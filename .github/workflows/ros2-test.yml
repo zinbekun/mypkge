@@ -1,0 +1,36 @@
+name: ROS2 build test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        path: ros2_ws/src/mypkg
+
+    - name: Setup ROS 2 Jazzy
+      uses: ros-tooling/setup-ros@v0.7
+      with:
+        required-ros-distributions: jazzy
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        rosdep update
+        cd ros2_ws
+        rosdep install --from-paths src --ignore-src -r -y
+
+    - name: Build workspace
+      run: |
+        source /opt/ros/jazzy/setup.bash
+        cd ros2_ws
+        colcon build --event-handlers console_direct+
+
