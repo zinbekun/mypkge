@@ -12,7 +12,7 @@ def main():
         node.get_logger().info('待機中')
 
     req = Query.Request()
-    req.name = "上田隆一"
+    req.time = "now"
     future = client.call_async(req)
 
     while rclpy.ok():
@@ -23,7 +23,7 @@ def main():
             except:
                 node.get_logger().info('呼び出し失敗')
             else:
-                node.get_logger().info("age:{}".format(response.age))
+                node.get_logger().info("now:{}".format(response.now))
 
             break
 
