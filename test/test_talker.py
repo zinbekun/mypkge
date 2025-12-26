@@ -5,6 +5,12 @@ from person_msgs.srv import Query
 import subprocess
 import time
 import signal
+import sys
+from unittest.mock import MagicMock
+
+# person_msgs がなくてもエラーにならないようにモック
+sys.modules['person_msgs'] = MagicMock()
+sys.modules['person_msgs.srv'] = MagicMock()
 
 @pytest.fixture(scope="module")
 def talker():
