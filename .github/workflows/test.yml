@@ -11,46 +11,35 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-    #  リポジトリをワークスペース src 配下にチェックアウト
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        path: ros2_ws/src
-    
-    #  チェック    
-    - name: Debug repo structure
-      run: ls -R
 
-
-    #  ROS 2 Jazzy をセットアップ
     - name: Setup ROS 2 Jazzy
       uses: ros-tooling/setup-ros@v0.7
       with:
         required-ros-distributions: jazzy
 
-    #  依存関係をインストール
     - name: Install dependencies
       run: |
         sudo apt update
         rosdep update
-        # ros2_ws 配下の src に移動して rosdep 実行
-        cd ros2_ws
-        rosdep install --from-paths src --ignore-src -r -y
+        # src 配下の依存パッケージをインストール
+        if [ -d "ros2_ws/src" ]; then
+          rosdep install --from-paths ros2_ws/src --ignore-src -r -y
+        else
+          echo "Error: ros2_ws/src does not exist"
+          exit 1
+        fi
 
-    #  ワークスペースをビルド
     - name: Build workspace
       run: |
         source /opt/ros/jazzy/setup.bash
         cd ros2_ws
         colcon build
 
-    #  talker を起動せず、モックで関数単位テスト
-    - name: Run tests with person_msgs mocked
+    - name: Run tests (safe, cb() only)
       run: |
-        # ROS 2 環境をロード
         source /opt/ros/jazzy/setup.bash
-
-        # ワークスペースに移動
         cd ros2_ws
         source install/setup.bash
 
@@ -63,12 +52,9 @@ jobs:
             exit 1
         fi
 
-        # pytest 実行
+        # pytest 実行（cb() をテストする安全版 test_talker.py）
         pytest src/test/test_talker.py src/test/test_listener.py
 
-
-
-    #  テスト失敗時にログを表示
     - name: Show test logs on failure
       if: failure()
       run: |
