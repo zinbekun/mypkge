@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-    #  リポジトリをデフォルトのルートにチェックアウト
+    #  リポジトリをチェックアウト（path 指定なし）
     - name: Checkout repository
       uses: actions/checkout@v4
 
@@ -21,7 +21,7 @@ jobs:
       with:
         required-ros-distributions: jazzy
 
-    #  依存関係をインストール
+    #  依存関係インストール
     - name: Install dependencies
       run: |
         sudo apt update
@@ -29,21 +29,20 @@ jobs:
         cd ros2_ws
         rosdep install --from-paths src --ignore-src -r -y
 
-    #  ワークスペースをビルド
+    #  ワークスペースビルド
     - name: Build workspace
       run: |
         source /opt/ros/jazzy/setup.bash
         cd ros2_ws
         colcon build
 
-    #  talker を起動せず、モックで関数単位テスト
+    #  モックで pytest 実行
     - name: Run tests with person_msgs mocked
       run: |
         source /opt/ros/jazzy/setup.bash
         cd ros2_ws
         source install/setup.bash
 
-        # test ディレクトリ確認
         if [ -d "src/mypkg/test" ]; then
             echo "Test directory exists:"
             ls -R src/mypkg/test
@@ -52,10 +51,9 @@ jobs:
             exit 1
         fi
 
-        # pytest 実行
         pytest src/mypkg/test/test_talker.py src/mypkg/test/test_listener.py
 
-    #  テスト失敗時にログを表示
+    #  テスト失敗時にログ表示
     - name: Show test logs on failure
       if: failure()
       run: |
