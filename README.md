@@ -8,7 +8,7 @@
 ## テスト済みの環境
 ・Ubuntu 24.04.5 LTS
 
-・Python: 3.7～3.12
+・Python: 3.12
 
 ## mypkge 機能説明
 本パッケージ mypkg には、
@@ -56,7 +56,7 @@ person_msgs/srv/Query サービスを用いて、
 
 
 ## talker.py ・listener.py 使い方
-talker.pyを起動後、別の端末で"now"と入力し、サービスを呼び出すと入力した瞬間の時間が表示されます。また、now以外を入力しサービスを呼び出すと、"unknown"と表示されます。
+talker.pyを起動後、別の端末で"now"と入力し、サービスを呼び出すと入力した瞬間の時間が表示されます。しかし、now以外を入力しサービスを呼び出すと、"unknown"と表示されます。また、launchファイル経由で実行することもできます。
 
 
 ```shell
@@ -78,6 +78,13 @@ response:
 person_msgs.srv.Query_Response(now='unknown')
 
 
+$ ros2 launch mypkg talk_listen.launch.py
+[INFO] [launch]: All log files can be found below /home/nbalu/.ros/log/2025-12-27-23-59-25-473375-itto-1747
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [talker-1]: process started with pid [1750]
+[INFO] [listener-2]: process started with pid [1751]
+[listener-2] [INFO] [1766847566.030323328] [listener]: now:2025-12-27 23:59:26
+[INFO] [listener-2]: process has finished cleanly [pid 1751]
 ```
 
 ## ライセンス
