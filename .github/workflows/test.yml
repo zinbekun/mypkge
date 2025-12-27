@@ -47,22 +47,25 @@ jobs:
     #  talker を起動せず、モックで関数単位テスト
     - name: Run tests with person_msgs mocked
       run: |
+        # ROS 2 環境をロード
         source /opt/ros/jazzy/setup.bash
 
+        # ワークスペースに移動
         cd ros2_ws
         source install/setup.bash
 
         # デバッグ: test ディレクトリを確認
-        if [ -d "src/mypkg/test" ]; then
+        if [ -d "src/test" ]; then
             echo "Test directory exists:"
-            ls -R src/mypkg/test
+            ls -R src/test
         else
-            echo "Error: src/mypkg/test does not exist"
+            echo "Error: src/test does not exist"
             exit 1
         fi
 
         # pytest 実行
-        pytest src/mypkg/test/test_talker.py src/mypkg/test/test_listener.py
+        pytest src/test/test_talker.py src/test/test_listener.py
+
 
 
     #  テスト失敗時にログを表示
