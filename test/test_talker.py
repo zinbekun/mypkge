@@ -8,7 +8,7 @@ sys.modules['person_msgs.srv'].Query = MagicMock()
 
 import pytest
 import rclpy
-from mypkg.talker import main as talker_main
+from mypkg import talker
 
 @pytest.fixture
 def setup_talker(monkeypatch):
@@ -28,15 +28,22 @@ def setup_talker(monkeypatch):
         lambda self, srv_type, srv_name: mock_client
     )
 
+    # Node.create_service をモック化して、_TYPE_SUPPORT エラーを回避
+    monkeypatch.setattr(
+        "rclpy.node.Node.create_service",
+        lambda self, srv_type, srv_name, callback: MagicMock()
+    )
+
+    # rclpy.spin をモック化して無限ループを回避
+    monkeypatch.setattr("rclpy.spin", lambda node: None)
+
     yield mock_client, mock_future, mock_result
 
 def test_query_service(setup_talker):
     client, future, mock_result = setup_talker
 
-    # talker を実行（内部でモックを使ってサービス呼び出し）
-    # main() の中で rclpy.init(), Node(), create_client() が呼ばれる想定
-    # ここでは直接 main() を呼ぶと、全てモックなので person_msgs がなくても安全
-    talker_main()
+    # talker_main() を呼ぶ（すべてモック済みなので安全）
+    talker.main()
 
     # モックの返り値が正しく使われているか確認
     assert future.result().age == 123
