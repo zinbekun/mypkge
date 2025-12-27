@@ -1,40 +1,60 @@
-name: ROS2 CI
+name: ROS2 build and test
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-and-test:
+    runs-on: ubuntu-24.04
+
     steps:
-      - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Set up ROS 2
-        uses: ros-tooling/setup-ros@v0.12
-        with:
-          version: noble
+    - name: Setup ROS 2 Jazzy
+      uses: ros-tooling/setup-ros@v0.7
+      with:
+        required-ros-distributions: jazzy
 
-      - name: Update apt and install dependencies
-        run: sudo apt update && sudo apt install -y python3-rosdep python3-colcon-common-extensions
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        rosdep update
+        if [ -d "ros2_ws/src" ]; then
+          rosdep install --from-paths ros2_ws/src --ignore-src -r -y
+        else
+          echo "Error: ros2_ws/src does not exist"
+          exit 1
+        fi
 
-      - name: Initialize rosdep
-        run: |
-          sudo rosdep init || true
-          rosdep update
+    - name: Build workspace
+      run: |
+        source /opt/ros/jazzy/setup.bash
+        cd ros2_ws
+        colcon build
 
-      - name: Create ROS2 workspace
-        run: |
-          mkdir -p ~/ros2_ws/src
-          cd ~/ros2_ws
-          # もしパッケージをコピーしたい場合
-          cp -r $GITHUB_WORKSPACE/* src/
+    - name: Run tests
+      run: |
+        source /opt/ros/jazzy/setup.bash
+        cd ros2_ws
+        source install/setup.bash
 
-      - name: Install ROS2 dependencies
-        run: |
-          cd ~/ros2_ws
-          rosdep install --from-paths src --ignore-src -y
+        if [ -d "src/test" ]; then
+          echo "Test directory exists:"
+          ls -R src/test
+        else
+          echo "Error: src/test does not exist"
+          exit 1
+        fi
 
-      - name: Build workspace
-        run: |
-          cd ~/ros2_ws
-          colcon build
+        pytest src/test/test_talker.py src/test/test_listener.py
+
+    - name: Show test logs on failure
+      if: failure()
+      run: |
+        cd ros2_ws
+        find log -type f -name "*.log" -exec cat {} \;
 
