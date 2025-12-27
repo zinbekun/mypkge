@@ -11,11 +11,9 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-    #  リポジトリをワークスペース src 配下にチェックアウト
+    #  リポジトリをデフォルトのルートにチェックアウト
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        path: ros2_ws/src
 
     #  ROS 2 Jazzy をセットアップ
     - name: Setup ROS 2 Jazzy
@@ -38,13 +36,13 @@ jobs:
         cd ros2_ws
         colcon build
 
-    #  talker を起動せず、関数単位テスト
+    #  talker を起動せず、モックで関数単位テスト
     - name: Run tests with person_msgs mocked
       run: |
         # ROS 2 環境をロード
         source /opt/ros/jazzy/setup.bash
 
-        # ワークスペースのルートに移動
+        # ワークスペースルートに移動
         cd ros2_ws
 
         # ビルド後の setup.bash をロード
@@ -59,7 +57,7 @@ jobs:
             exit 1
         fi
 
-        # pytest 実行（カレントディレクトリからの相対パス指定）
+        # pytest 実行
         pytest src/mypkg/test/test_talker.py src/mypkg/test/test_listener.py
 
     #  テスト失敗時にログを表示
