@@ -24,8 +24,9 @@ jobs:
       run: |
         sudo apt update
         rosdep update
-        # src 配下の依存パッケージをインストール
+        # リポジトリ直下の src 配下の依存パッケージをインストール
         rosdep install --from-paths src --ignore-src -r -y
+
 
     - name: Build workspace
       run: |
