@@ -22,8 +22,7 @@ def cb(request, response):
         if hasattr(response, 'now'):
             response.now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     else:
-        if hasattr(response, 'time'):
-            response.time = "unknown"
+        response.now = "unknown"
 
     return response
 
