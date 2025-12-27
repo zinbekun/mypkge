@@ -11,41 +11,51 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-    # リポジトリをデフォルトのルートにチェックアウト
+    #  リポジトリをワークスペース src 配下にチェックアウト
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        path: ros2_ws/src
 
+    #  ROS 2 Jazzy をセットアップ
     - name: Setup ROS 2 Jazzy
       uses: ros-tooling/setup-ros@v0.7
       with:
         required-ros-distributions: jazzy
 
+    #  依存関係をインストール
     - name: Install dependencies
       run: |
         sudo apt update
         rosdep update
-        # リポジトリ直下の src 配下の依存パッケージをインストール
+        # ros2_ws 配下の src に移動して rosdep 実行
+        cd ros2_ws
         rosdep install --from-paths src --ignore-src -r -y
 
-
+    #  ワークスペースをビルド
     - name: Build workspace
       run: |
         source /opt/ros/jazzy/setup.bash
+        cd ros2_ws
         colcon build
 
+    #  talker を起動せず、モックで関数単位テスト
     - name: Run tests with person_msgs mocked
       run: |
         source /opt/ros/jazzy/setup.bash
+        cd ros2_ws
         source install/setup.bash
 
         # デバッグ: test ディレクトリを確認
         ls -R src/mypkg/test
 
-        # talker を起動せず、関数単位でモックテスト
+        # pytest 実行
         pytest src/mypkg/test/test_talker.py src/mypkg/test/test_listener.py
 
+    #  テスト失敗時にログを表示
     - name: Show test logs on failure
       if: failure()
       run: |
+        cd ros2_ws
         find log -type f -name "*.log" -exec cat {} \;
 
